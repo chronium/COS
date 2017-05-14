@@ -1,25 +1,24 @@
 #![feature(asm)]
+#![feature(unique)]
 #![feature(intrinsics)]
+#![feature(type_ascription)]
+#![feature(const_fn)]
 #![feature(lang_items)]
 #![no_std]
 
+extern crate volatile;
 extern crate rlibc;
+extern crate cpuio;
+extern crate spin;
+
+#[macro_use]
+mod arch;
 
 #[no_mangle]
 pub extern fn kmain () {
-    // ATTENTION: we have a very small stack and no guard page
-
-    let hello = b"Hello from Rust!";
-    let color_byte = 0x07; // gray foreground, black background
-
-    let mut hello_colored = [color_byte; 32];
-    for (i, char_byte) in hello.into_iter().enumerate() {
-        hello_colored[i*2] = *char_byte;
-    }
-
-    // write `Hello from Rust!` to the somehwat-center of the VGA text buffer
-    let buffer_ptr = (0xb8000 + 1980) as *mut _;
-    unsafe { *buffer_ptr = hello_colored };
+    arch::io::clear_screen ();
+    println!("Hello World!");
+    print!("This is a test!\nDoes it work?");
 
     loop{}
 }

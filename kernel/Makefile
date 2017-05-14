@@ -4,7 +4,7 @@ DESTDIR ?=
 EXEC_PREFIX ?= $(PREFIX)
 BOOTDIR ?= $(EXEC_PREFIX)/boot
 
-ARCHDIR := arch/$(HOSTARCH)
+ARCHDIR := kernel/arch/$(HOSTARCH)
 
 include $(ARCHDIR)/make.config
 

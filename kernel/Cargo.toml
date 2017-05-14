@@ -12,3 +12,6 @@ panic = "abort"
 
 [dependencies]
 rlibc = "*"
+cpuio = "*"
+volatile = "*"
+spin = "*"
