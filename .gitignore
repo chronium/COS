@@ -27,3 +27,9 @@
 *.exe
 *.out
 *.app
+
+# Kernel and misc
+*.iso
+isodir
+sysroot
+.vscode
