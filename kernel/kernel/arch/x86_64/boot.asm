@@ -32,12 +32,12 @@ _hdr_start:
     ; Tags
 
     ; Sections override
-    dw  2, 0
-    dd  24
-    dd  _hdr_start
-    dd  _load_start
-    dd  _load_end
-    dd  _bss_end
+    ;dw  2, 0
+    ;dd  24
+    ;dd  _hdr_start
+    ;dd  _load_start
+    ;dd  _load_end
+    ;dd  _bss_end
 
     ; Entry point override
     dw  3, 0
@@ -105,6 +105,8 @@ entry_point:
 
     ; Jump to kernel
 
+    mov rdi, rbx
+    add rdi, 0xFFFFFFFF80000000
     mov     rax, kmain
     call    rax
 

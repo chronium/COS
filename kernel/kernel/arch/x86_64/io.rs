@@ -14,11 +14,11 @@ pub struct Writer {
    buffer: Unique<Buffer>
 }
 
-pub static WRITER: Mutex<Writer> = Mutex::new (Writer {
+pub static WRITER: Mutex<Writer> = Mutex::new(Writer {
    column: 0,
    row: 0,
-   color: ColorCode::new (Color::LightGray, Color::Black),
-   buffer: unsafe { Unique::new (0xB8000 as *mut _) },
+   color: ColorCode::new(Color::LightGray, Color::Black),
+   buffer: unsafe { Unique::new((0xFFFFFFFF80000000u64 + 0xB8000u64) as *mut _) },
 });
 
 pub mod terminal {
@@ -75,16 +75,16 @@ pub mod terminal {
 
    impl Writer {
       #[inline(always)]
-      pub fn write_byte (&mut self, byte: u8) {
+      pub fn write_byte(&mut self, byte: u8) {
          match byte {
-            b'\n' => self.new_line (),
+            b'\n' => self.new_line(),
             byte => {
                let row = self.row;
                let col = self.column;
 
                let color = self.color;
 
-               self.buffer ().chars[row][col].write (TermChar {
+               self.buffer().chars[row][col].write(TermChar {
                   ascii_char: byte,
                   color: color,
                });
@@ -97,55 +97,55 @@ pub mod terminal {
                }
 
                if row >= BUFFER_HEIGHT {
-                  self.scroll ();
+                  self.scroll();
                }
 
-               self.update_cursor ();
+               self.update_cursor();
             }
          }
       }
 
       #[inline(always)]
-      pub fn update_cursor (&self) {
+      pub fn update_cursor(&self) {
          let offset: usize = self.row * 80 + self.column;
          let off_low = offset & 0xFF;
          let off_high = (offset >> 8) & 0xFF;
          
          unsafe {
-            cpuio::outb (0x0Fu8, 0x3D4);
-            cpuio::outb (off_low as u8, 0x3D5);
-            cpuio::outb (0x0Eu8, 0x3D4);
-            cpuio::outb (off_high as u8, 0x3D5);
+            cpuio::outb(0x0Fu8, 0x3D4);
+            cpuio::outb(off_low as u8, 0x3D5);
+            cpuio::outb(0x0Eu8, 0x3D4);
+            cpuio::outb(off_high as u8, 0x3D5);
          }
       }
 
       #[inline(always)]
       #[allow(dead_code)]
-      pub fn write_str (&mut self, s: &str) {
-         for byte in s.bytes () {
-            self.write_byte (byte)
+      pub fn write_str(&mut self, s: &str) {
+         for byte in s.bytes() {
+            self.write_byte(byte)
          }
       }
 
       #[inline(always)]
-      fn buffer (&mut self) -> &mut Buffer {
-         unsafe { self.buffer.as_mut () }
+      fn buffer(&mut self) -> &mut Buffer {
+         unsafe { self.buffer.as_mut() }
       }
 
       #[inline(always)]
-      fn new_line (&mut self) {
+      fn new_line(&mut self) {
          self.column = 0;
          self.row += 1;
 
          if self.row >= 25 {
-            self.scroll ();
+            self.scroll();
          }
 
-         self.update_cursor ();
+         self.update_cursor();
       }
 
       #[inline(always)]
-      fn scroll (&mut self) {
+      fn scroll(&mut self) {
          for row in 1..BUFFER_HEIGHT {
             for col in 0..BUFFER_WIDTH {
                let buffer = self.buffer();
@@ -154,41 +154,41 @@ pub mod terminal {
             }
          }
 
-         self.clear_row (BUFFER_HEIGHT - 1);
+         self.clear_row(BUFFER_HEIGHT - 1);
 
          self.column = 0;
          self.row -= 1;
 
-         self.update_cursor ();
+         self.update_cursor();
       }
 
       #[inline(always)]
-      fn clear_row (&mut self, row: usize) {
+      fn clear_row(&mut self, row: usize) {
          let blank = TermChar {
             ascii_char: b' ',
             color: self.color,
          };
          for col in 0..BUFFER_WIDTH {
-            self.buffer ().chars[row][col].write (blank);
+            self.buffer().chars[row][col].write(blank);
          }
       }
    }
 }
 
 impl fmt::Write for Writer {
-   fn write_str (&mut self, s: &str) -> fmt::Result {
-      for byte in s.bytes () {
-         self.write_byte (byte)
+   fn write_str(&mut self, s: &str) -> fmt::Result {
+      for byte in s.bytes() {
+         self.write_byte(byte)
       }
 
-      Ok (())
+      Ok(())
    }
 }
 
 #[macro_export]
 macro_rules! print {
     ($($arg:tt)*) => ({
-       $crate::arch::io::print (format_args!($($arg)*));
+       $crate::arch::io::print(format_args!($($arg)*));
     });
 }
 
@@ -207,8 +207,7 @@ use self::terminal::BUFFER_HEIGHT;
 
 pub fn clear_screen() {
     for _ in 0..BUFFER_HEIGHT {
-        println!("");
-        WRITER.lock ().row = 0;
-        WRITER.lock ().column = 0;
+        WRITER.lock().row = 0;
+        WRITER.lock().column = 0;
     }
 }
